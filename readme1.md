@@ -1,0 +1,13 @@
+Implementační dokumentace k 1. úloze do IPP 2022/2023  
+Jméno a příjmení: Oliver Nemček  
+Login: xnemce08
+
+## Filozofia návrhu
+Keďže v jazyku IPPcode23 je vždycky maximálne jeden príkaz na jednom riadku, a jednotlivé elementy príkazu sú oddelené bielym znakom, stačí rozdeliť každý riadok na tokeny s prázdnymi znakmi ako oddelovačom, a tieto riadky následne spracovať. Je možné ich spracovať úplne nezávisle od seba, pretože jednotlivé príkazy zo sebou syntakticky vôbec nesúvisia. Skript teda prechádza program postupne po riadkoch v cykle, a pre každý riadok kontroluje syntaktickú správnosť - skontroluje či sa jedná o valídnu inštrukciu, a po identifikácii inštrukcie skontroluje či má správny druh a počet argumentov. Inštrukciu s argumentami následne vypíše vo formáte XML na štandardný výstup.
+
+## Spôsob riešenia
+Program je tvorený dvoma while cyklami, pričom obidva iterujú cez riadky vstupného programu. Na každý riadok je hneď po načítaní do premennej zavolaná funkcia clean. Táto funkcia odstráni z riadku všetky znaky po znaku `#` vrátane, teda odstráni komentáre, odstráni prípadný znak `\n` a všetky prázdne znaky väčšie ako 1 medzera zmení na práve jednu medzeru.
+
+V prvom while cykle sa potom hladá hlavička `.IPPcode23`. V prvom neprázdnom riadku sa skontroluje výskyt hlavičky, a v prípade že tam je, vypíše sa na výstup povinná XML hlavička a pokračuje sa na druhý while cyklus.
+
+V druhom while cykle sa po filtrácii riadku funkciou clean riadok rozdelí na tokeny pomocou vstavanej funkcie `explode`. Vďaka tomu že všetky prázdne znaky boli prevedené na práve jednu medzeru sa môže ako rozdelovač tokenov spolahlivo použiť znak medzery. Prvý token, teda token reprezentujúci inštrukciu, sa vloží do switchu. Podľa toho o ktorú konkrétnu inštrukciu sa jedná sa potom kontroluje počet a druh argumentov. Vstavanou funkciou `array_key_exists` sa kontroluje ich počet (koľko tokenov bolo vytvorených funkciou explode). Na výstup sa vypíše začiatok elementu instruction, vrátane atribútu order, ktorý je riešený globálnou premennou, a opcode. Druh argumentov sa kontroluje vo funkciách `checksymb`, `checkvar`, `checktype` a `checklabel`. Podľa toho aký druh argumentu inštrukcia na danom mieste očakáva sa spustí korespondujúca funkcia. Tá potom porovná argument s regulárnym výrazom použitím funkcie `preg_match`, a pri úspechu vypíše v XML formáte element arg. Pri neúspechu nastáva chyba 23. Po skontrolovaní argumentov sa uzavrie element instruction a while cyklus pokračuje až po koniec súboru, a následne sa uzavrie aj element program.
